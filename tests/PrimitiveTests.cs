@@ -9,8 +9,10 @@ namespace Tests
         public void Test_TestVector()
         {
             // Generate the test vector
-            var tv = GenerateTestVector();
-            
+            var tv = Enumerable.Range(0, 12)
+                .Select(i => (uint)(i * i * i + i * 0x9e3779b9))
+                .ToArray();
+
             // Perform the Gimli permutation
             SecretBox.Internal.Primitive.Gimli(tv);
 
@@ -23,13 +25,6 @@ namespace Tests
             };
 
             Assert.That(tv, Is.EqualTo(tvExp));
-        }
-
-        private static uint[] GenerateTestVector()
-        {
-            return Enumerable.Range(0, 12)
-                .Select(i => (uint)(i * i * i + i * 0x9e3779b9))
-                .ToArray();
         }
     }
 }
