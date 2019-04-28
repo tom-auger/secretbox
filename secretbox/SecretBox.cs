@@ -53,6 +53,12 @@
             Gimli(buf, TagHeader);
         }
 
+        private static void Pad(byte[] buf, int pos, byte domain)
+        {
+            buf[pos] ^= (byte)((domain << 1) | 1);
+            buf[GimliRate - 1] ^= 0x80;
+        }
+
         private static void ArrayXor(byte[] src, int srcIdx, byte[] dst, int dstIdx, int length)
         {
             for (var i = 0; i < length; i++)
