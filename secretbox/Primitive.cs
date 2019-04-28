@@ -6,6 +6,7 @@ namespace SecretBox.Internal
     {
         internal const int GimliBlockBytes = 48;
         internal const int GimliRate = 16;
+        internal const int GimliCapacity = 32;
 
         /// <summary>
         /// This is a hack to convert byte[] to uint[] without requiring unsafe

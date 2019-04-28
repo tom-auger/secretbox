@@ -53,6 +53,15 @@
             Gimli(buf, TagHeader);
         }
 
+        private static void Finalize(byte[] buf, byte[] key, byte tag)
+        {
+            Contract.Assert(KeyBytes == GimliCapacity);
+            ArrayXor(key, 0, buf, GimliRate, KeyBytes);
+            Gimli(buf, tag);
+            ArrayXor(key, 0, buf, GimliRate, KeyBytes);
+            Gimli(buf, tag);
+        }
+
         private static void Pad(byte[] buf, int pos, byte domain)
         {
             buf[pos] ^= (byte)((domain << 1) | 1);
