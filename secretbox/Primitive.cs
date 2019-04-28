@@ -4,6 +4,9 @@ namespace SecretBox.Internal
 {
     public static class Primitive
     {
+        internal const int GimliBlockBytes = 48;
+        internal const int GimliRate = 16;
+
         /// <summary>
         /// This is a hack to convert byte[] to uint[] without requiring unsafe
         /// code, or copying memory. The struct has two fields of the required
@@ -26,10 +29,17 @@ namespace SecretBox.Internal
         /// own constructions.
         /// </summary>
         /// <param name="state">An array of 48 bytes on which to perform the Gimli permutation.</param>
-        public static void Gimli(byte[] state)
+        /// <param name="tag">A single byte tag to add to the end of the state.</param>
+        public static void Gimli(byte[] state, byte tag)
         {
+            // Add the tag onto the end of the state
+            state[GimliBlockBytes - 1] ^= tag;
+            
+            // Convert the 8 bit ints to 32 bit ints
             var converter = new ByteUintConverter { Bytes = state };
             var stateUint = converter.Uints;
+
+            // Perform the Gimli permutation
             Gimli(stateUint);
         }
 
