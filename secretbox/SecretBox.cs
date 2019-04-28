@@ -12,7 +12,9 @@
 
         private const int IVBytes = 20;
         private static readonly byte[] Prefix = { 6, 115, 98, 120, 50, 53, 54, 8 };
+
         private const byte TagHeader = 0x01;
+        private const byte TagPayload = 0x02;
 
         private static void Setup(byte[] buf, long msgId, string ctx, byte[] key, byte[] iv, byte keyTag)
         {
@@ -60,6 +62,28 @@
             Gimli(buf, tag);
             ArrayXor(key, 0, buf, GimliRate, KeyBytes);
             Gimli(buf, tag);
+        }
+
+        private static void XorEnc(byte[] buf, byte[] output, byte[] input, int inputLength)
+        {
+            // TODO: May want to make i a bigger type, e.g. long or add overlaods (generic with type restriction?)
+            int i;
+            for (i = 0; i < inputLength / GimliRate; i++)
+            {
+                ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, GimliRate);
+                Array.Copy(output, i * GimliRate, buf, 0, GimliRate);
+                Gimli(buf, TagPayload);
+            }
+
+            var leftOver = inputLength % GimliRate;
+            if (leftOver != 0)
+            {
+                ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, leftOver);
+                Array.Copy(output, i * GimliRate, buf, 0, leftOver);
+            }
+
+            Pad(buf, leftOver, GimliDomainAEAD);
+            Gimli(buf, TagPayload);
         }
 
         private static void Pad(byte[] buf, int pos, byte domain)

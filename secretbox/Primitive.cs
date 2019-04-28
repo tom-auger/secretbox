@@ -8,6 +8,8 @@ namespace SecretBox.Internal
         internal const int GimliRate = 16;
         internal const int GimliCapacity = 32;
 
+        internal const int GimliDomainAEAD = 0x0;
+
         /// <summary>
         /// This is a hack to convert byte[] to uint[] without requiring unsafe
         /// code, or copying memory. The struct has two fields of the required
