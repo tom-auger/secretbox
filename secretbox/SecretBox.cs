@@ -75,5 +75,13 @@
                 dst[i + dstIdx] ^= src[i + srcIdx];
             }
         }
+
+        private static void ArrayXor2(byte[] src1, int src1Idx, byte[] src2, int src2Idx, byte[] dst, int dstIdx, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                dst[i + dstIdx] = (byte)(src1[i + src1Idx] ^ src2[i + src2Idx]);
+            }
+        }
     }
 }
