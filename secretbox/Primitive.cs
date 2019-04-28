@@ -1,7 +1,38 @@
-﻿namespace SecretBox.Internal
+﻿using System.Runtime.InteropServices;
+
+namespace SecretBox.Internal
 {
     public static class Primitive
     {
+        /// <summary>
+        /// This is a hack to convert byte[] to uint[] without requiring unsafe
+        /// code, or copying memory. The struct has two fields of the required
+        /// types that start at the same memory location.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        private struct ByteUintConverter
+        {
+            [FieldOffset(0)]
+            public byte[] Bytes;
+
+            [FieldOffset(0)]
+            public uint[] Uints;
+        }
+
+        /// <summary>
+        /// This is a C# translation of the c-ref implementation of 
+        /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html.
+        /// This is not intended for general usage! Only use for building your 
+        /// own constructions.
+        /// </summary>
+        /// <param name="state">An array of 48 bytes on which to perform the Gimli permutation.</param>
+        public static void Gimli(byte[] state)
+        {
+            var converter = new ByteUintConverter { Bytes = state };
+            var stateUint = converter.Uints;
+            Gimli(stateUint);
+        }
+
         /// <summary>
         /// This is a C# translation of the c-ref implementation of 
         /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html.
