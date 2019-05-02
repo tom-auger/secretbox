@@ -9,8 +9,10 @@
     {
         public const int KeyBytes = 32;
         public const int ContextBytes = 8;
+        public const int HeaderBytes = 20 + 16;
 
         private const int IVBytes = 20;
+        private const int SIVBytes = 20;
         private static readonly byte[] Prefix = { 6, 115, 98, 120, 50, 53, 54, 8 };
 
         private const byte TagHeader = 0x01;
@@ -53,6 +55,40 @@
             var msgIdBytes = BitConverter.GetBytes(msgId);
             ArrayXor(msgIdBytes, 0, buf, IVBytes - GimliRate, 8);
             Gimli(buf, TagHeader);
+        }
+
+        private static void EncryptIv(byte[] c, byte[] m, int mlen, long msgId, string ctx, byte[] key, byte[] iv)
+        {
+            var buf = new byte[GimliBlockBytes];
+            if (c == m)
+            {
+                //Array.Copy(m, 0, c, HeaderBytes, mlen);
+                // TODO: May need to change the interface to use ArraySegment
+                throw new NotImplementedException();
+            }
+
+            // First pass: compute the SIV
+            Setup(buf, msgId, ctx, key, iv, GimliTagKey0);
+            int i;
+            for (i = 0; i < mlen / GimliRate; i++)
+            {
+                ArrayXor(m, i * GimliRate, buf, 0, GimliRate);
+                Gimli(buf, TagPayload);
+            }
+            var leftOver = mlen % GimliRate;
+            if (leftOver != 0)
+            {
+                ArrayXor(m, i * GimliRate, buf, 0, leftOver);
+            }
+            Pad(buf, leftOver, GimliDomainXOF);
+            Gimli(buf, TagPayload);
+
+            Finalize(buf, key, GimliTagFinal0);
+            Array.Copy(buf, GimliRate, c, 0, SIVBytes);
+
+            // Second pass: encrypt the message, mix the key, squeeze and extra block for the MAC
+            Setup(buf, msgId, ctx, key, c, GimliTagKey);
+            XorEnc(buf, )
         }
 
         private static void Finalize(byte[] buf, byte[] key, byte tag)
