@@ -14,6 +14,7 @@ namespace SecretBox.Internal
         internal const byte GimliTagKey = 0xff;
         internal const byte GimliTagKey0 = 0xfe;
         internal const byte GimliTagFinal0 = 0xf8;
+        internal const byte GimliTagFinal = 0x08;
 
         /// <summary>
         /// This is a hack to convert byte[] to uint[] without requiring unsafe
