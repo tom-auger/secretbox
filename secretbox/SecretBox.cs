@@ -1,6 +1,7 @@
 ﻿namespace SecretBox
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.Contracts;
     using System.Text;
     using static Internal.Primitive;
@@ -58,17 +59,18 @@
             Gimli(buf, TagHeader);
         }
 
-        private static void EncryptIv(byte[] c, byte[] m_, int mlen, long msgId, string ctx, byte[] key, byte[] iv)
+        private static void EncryptIv(
+            byte[] c, byte[] msg, int mlen, long msgId, string ctx, byte[] key, byte[] iv)
         {
-            var mac = new ByteSpan(c, SIVBytes, MACBytes);
-            var ct = new ByteSpan(c, SIVBytes + MACBytes, c.Length - (SIVBytes + MACBytes));
-            var m = new ByteSpan(m_, 0, mlen);
+            var mac = new ArraySegment<byte>(c, SIVBytes, MACBytes);
+            var ct = new ArraySegment<byte>(c, SIVBytes + MACBytes, c.Length - (SIVBytes + MACBytes));
+            var m = new ArraySegment<byte>(msg, 0, mlen);
 
             var buf = new byte[GimliBlockBytes];
-            if (c == m_)
+            if (c == msg)
             {
-                Array.Copy(m_, 0, c, HeaderBytes, mlen);
-                m = new ByteSpan(m_, HeaderBytes, mlen);
+                Array.Copy(msg, 0, c, HeaderBytes, mlen);
+                m = new ArraySegment<byte>(msg, HeaderBytes, mlen);
             }
 
             // First pass: compute the SIV
@@ -95,7 +97,7 @@
             XorEnc(buf, ct, m, mlen);
 
             Finalize(buf, key, GimliTagFinal);
-            ByteSpanCopy(buf, GimliRate, mac, 0, MACBytes);
+            ArrayCopy(buf, GimliRate, mac, 0, MACBytes);
         }
 
         private static void Finalize(byte[] buf, byte[] key, byte tag)
@@ -107,14 +109,14 @@
             Gimli(buf, tag);
         }
 
-        private static void XorEnc(byte[] buf, ByteSpan output, ByteSpan input, int inputLength)
+        private static void XorEnc(byte[] buf, ArraySegment<byte> output, ArraySegment<byte> input, int inputLength)
         {
             // TODO: May want to make i a bigger type, e.g. long or add overlaods (generic with type restriction?)
             int i;
             for (i = 0; i < inputLength / GimliRate; i++)
             {
                 ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, GimliRate);
-                ByteSpanCopy(output, i * GimliRate, buf, 0, GimliRate);
+                ArrayCopy(output, i * GimliRate, buf, 0, GimliRate);
                 Gimli(buf, TagPayload);
             }
 
@@ -122,7 +124,7 @@
             if (leftOver != 0)
             {
                 ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, leftOver);
-                ByteSpanCopy(output, i * GimliRate, buf, 0, leftOver);
+                ArrayCopy(output, i * GimliRate, buf, 0, leftOver);
             }
 
             Pad(buf, leftOver, GimliDomainAEAD);
@@ -135,7 +137,7 @@
             buf[GimliRate - 1] ^= 0x80;
         }
 
-        private static void ArrayXor(byte[] src, int srcIdx, byte[] dst, int dstIdx, int length)
+        private static void ArrayXor(IReadOnlyList<byte> src, int srcIdx, IList<byte> dst, int dstIdx, int length)
         {
             for (var i = 0; i < length; i++)
             {
@@ -143,15 +145,7 @@
             }
         }
 
-        private static void ArrayXor(ByteSpan src, int srcIdx, byte[] dst, int dstIdx, int length)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                dst[i + dstIdx] ^= src[i + srcIdx];
-            }
-        }
-
-        private static void ArrayXor2(ByteSpan src1, int src1Idx, byte[] src2, int src2Idx, ByteSpan dst, int dstIdx, int length)
+        private static void ArrayXor2(IReadOnlyList<byte> src1, int src1Idx, IReadOnlyList<byte> src2, int src2Idx, IList<byte> dst, int dstIdx, int length)
         {
             for (var i = 0; i < length; i++)
             {
@@ -159,21 +153,12 @@
             }
         }
 
-        private static void ByteSpanCopy(ByteSpan src, int srcIdx, byte[] dst, int dstIdx, int count)
+        private static void ArrayCopy(IReadOnlyList<byte> src, int srcIdx, IList<byte> dst, int dstIdx, int count)
         {
             for (var i = 0; i < count; i++)
             {
                 dst[dstIdx + i] = src[srcIdx + i];
             }
         }
-
-        private static void ByteSpanCopy(byte[] src, int srcIdx, ByteSpan dst, int dstIdx, int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                dst[dstIdx + i] = src[srcIdx + i];
-            }
-        }
-
     }
 }
