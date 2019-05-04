@@ -1,10 +1,10 @@
 ﻿namespace SecretBox
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics.Contracts;
     using System.Text;
     using static Internal.Primitive;
+    using static Utilities;
 
     public static class SecretBox
     {
@@ -62,11 +62,13 @@
         private static void EncryptIv(
             byte[] c, byte[] msg, int mlen, long msgId, string ctx, byte[] key, byte[] iv)
         {
+            var buf = new byte[GimliBlockBytes];
+            var m = new ArraySegment<byte>(msg, 0, mlen);
             var mac = new ArraySegment<byte>(c, SIVBytes, MACBytes);
             var ct = new ArraySegment<byte>(c, SIVBytes + MACBytes, c.Length - (SIVBytes + MACBytes));
-            var m = new ArraySegment<byte>(msg, 0, mlen);
 
-            var buf = new byte[GimliBlockBytes];
+            // If encrypting the message in place then move the message further
+            // down the array to make room for the header
             if (c == msg)
             {
                 Array.Copy(msg, 0, c, HeaderBytes, mlen);
@@ -81,18 +83,21 @@
                 ArrayXor(m, i * GimliRate, buf, 0, GimliRate);
                 Gimli(buf, TagPayload);
             }
+
             var leftOver = mlen % GimliRate;
             if (leftOver != 0)
             {
                 ArrayXor(m, i * GimliRate, buf, 0, leftOver);
             }
+
             Pad(buf, leftOver, GimliDomainXOF);
             Gimli(buf, TagPayload);
 
             Finalize(buf, key, GimliTagFinal0);
             Array.Copy(buf, GimliRate, c, 0, SIVBytes);
 
-            // Second pass: encrypt the message, mix the key, squeeze and extra block for the MAC
+            // Second pass: encrypt the message, mix the key, and squeeze an 
+            // extra block for the MAC
             Setup(buf, msgId, ctx, key, c, GimliTagKey);
             XorEnc(buf, ct, m, mlen);
 
@@ -111,7 +116,6 @@
 
         private static void XorEnc(byte[] buf, ArraySegment<byte> output, ArraySegment<byte> input, int inputLength)
         {
-            // TODO: May want to make i a bigger type, e.g. long or add overlaods (generic with type restriction?)
             int i;
             for (i = 0; i < inputLength / GimliRate; i++)
             {
@@ -135,30 +139,6 @@
         {
             buf[pos] ^= (byte)((domain << 1) | 1);
             buf[GimliRate - 1] ^= 0x80;
-        }
-
-        private static void ArrayXor(IReadOnlyList<byte> src, int srcIdx, IList<byte> dst, int dstIdx, int length)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                dst[i + dstIdx] ^= src[i + srcIdx];
-            }
-        }
-
-        private static void ArrayXor2(IReadOnlyList<byte> src1, int src1Idx, IReadOnlyList<byte> src2, int src2Idx, IList<byte> dst, int dstIdx, int length)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                dst[i + dstIdx] = (byte)(src1[i + src1Idx] ^ src2[i + src2Idx]);
-            }
-        }
-
-        private static void ArrayCopy(IReadOnlyList<byte> src, int srcIdx, IList<byte> dst, int dstIdx, int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                dst[dstIdx + i] = src[srcIdx + i];
-            }
         }
     }
 }
