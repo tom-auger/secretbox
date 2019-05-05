@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libhydrogen\hydrogen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libhydrogen\hydrogen.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\common.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\core.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\gimli-core.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\hash.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\hydrogen_p.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\kdf.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\kx.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\pwhash.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\random.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\secretbox.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\sign.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\x25519.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\gimli-core\portable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libhydrogen\impl\gimli-core\sse2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
