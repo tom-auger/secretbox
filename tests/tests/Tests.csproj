@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\secretbox\SecretBox.csproj" />
+    <ProjectReference Include="..\..\secretbox\SecretBox.csproj" />
   </ItemGroup>
 
 </Project>
