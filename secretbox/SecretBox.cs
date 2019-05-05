@@ -26,39 +26,38 @@
         /// <summary>
         /// Generates an encryption key.
         /// </summary>
-        /// <param name="key">A buffer in which to place the generated key.</param>
+        /// <param name="key">The buffer in which to place the generated key.</param>
         public void GenerateKey(byte[] key)
         {
             rngCsp.GetBytes(key, 0, KeyBytes);
         }
 
         /// <summary>
-        /// Encrypt a message with optional message Id and context, using the
-        /// given key.
+        /// Encrypt a message using the given key, with context and optional message ID.
         /// </summary>
         /// <param name="ciphertext">A buffer in which to place the generated ciphertext.</param>
         /// <param name="message">The message to encrypt.</param>
         /// <param name="messageLength">The length of the message to encrypt.</param>
-        /// <param name="messageId">The message id.</param>
-        /// <param name="context">A string of maximum 8 characters describing the context.</param>
         /// <param name="key">The encryption key.</param>
+        /// <param name="context">A string of maximum 8 characters describing the context.</param>
+        /// <param name="messageId">Optional message ID. Defaults to 1.</param>
         public void Encrypt(
             byte[] ciphertext,
             byte[] message,
             int messageLength,
-            long messageId,
+            byte[] key,
             string context,
-            byte[] key)
+            long messageId = 1)
         {
-            ValidateParameters(ciphertext, message, messageLength, context, key);
+            ValidateParameters(ciphertext, message, messageLength, key, context);
 
             var iv = GenerateIV();
             var ctx = ConvertContextToBytes(context);
-            EncryptWithIv(ciphertext, message, messageLength, messageId, ctx, key, iv);
+            EncryptWithIv(ciphertext, message, messageLength, key, iv, ctx, messageId);
         }
 
         private static void EncryptWithIv(
-            byte[] c, byte[] m, int mlen, long msgId, byte[] ctx, byte[] key, byte[] iv)
+            byte[] c, byte[] m, int mlen, byte[] key, byte[] iv, byte[] ctx, long msgId)
         {
             var buf = new byte[GimliBlockBytes];
             var msg = new ArraySegment<byte>(m, 0, mlen);
@@ -97,7 +96,7 @@
             // Second pass: encrypt the message, mix the key, and squeeze an 
             // extra block for the MAC
             Setup(buf, msgId, ctx, key, c, GimliTagKey);
-            XorEnc(buf, ct, msg, mlen);
+            XorEnc(buf, msg, mlen, ct);
 
             Finalize(buf, key, GimliTagFinal);
             ArrayCopy(buf, GimliRate, mac, 0, MACBytes);
@@ -141,7 +140,7 @@
         }
 
         private static void XorEnc(
-            byte[] buf, ArraySegment<byte> output, ArraySegment<byte> input, int inputLength)
+            byte[] buf, ArraySegment<byte> input, int inputLength, ArraySegment<byte> output)
         {
             int i;
             for (i = 0; i < inputLength / GimliRate; i++)
@@ -195,8 +194,8 @@
             byte[] ciphertext,
             byte[] message,
             int messageLength,
-            string context,
-            byte[] key)
+            byte[] key,
+            string context)
         {
             if (key.Length != KeyBytes)
             {

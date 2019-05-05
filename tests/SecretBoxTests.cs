@@ -14,12 +14,11 @@
             const int mlen = 12;
             var m = new byte[mlen];
             var c = new byte[mlen + HeaderBytes];
-            const int msgId = 1;
             var ctx = "test";
 
             var sb = new SecretBox();
             Assert.That(
-                () => sb.Encrypt(c, m, mlen, msgId, ctx, key), 
+                () => sb.Encrypt(c, m, mlen, key, ctx), 
                 Throws.ArgumentException.With.Message.EqualTo(
                     $"'key' length must be {KeyBytes} bytes"));
         }
@@ -32,12 +31,11 @@
             const int mlenActual = 12;
             var m = new byte[mlenActual];
             var c = new byte[mlenActual + HeaderBytes];
-            const int msgId = 1;
             var ctx = "test";
 
             var sb = new SecretBox();
             Assert.That(
-                () => sb.Encrypt(c, m, mlen, msgId, ctx, key),
+                () => sb.Encrypt(c, m, mlen, key, ctx),
                 Throws.ArgumentException.With.Message.EqualTo(
                     $"'messageLength' must be at least than the length of 'message'"));
         }
@@ -49,12 +47,11 @@
             const int mlen = 12;
             var m = new byte[mlen];
             var c = new byte[mlen + HeaderBytes];
-            const int msgId = 1;
             var ctx = "you are old father william";
 
             var sb = new SecretBox();
             Assert.That(
-                () => sb.Encrypt(c, m, mlen, msgId, ctx, key),
+                () => sb.Encrypt(c, m, mlen, key, ctx),
                 Throws.ArgumentException.With.Message.EqualTo(
                     $"'context' must be at most {ContextBytes} characters"));
         }
@@ -66,12 +63,11 @@
             const int mlen = 12;
             var m = new byte[mlen];
             var c = new byte[mlen];
-            const int msgId = 1;
             var ctx = "test";
 
             var sb = new SecretBox();
             Assert.That(
-                () => sb.Encrypt(c, m, mlen, msgId, ctx, key),
+                () => sb.Encrypt(c, m, mlen, key, ctx),
                 Throws.ArgumentException.With.Message.EqualTo(
                     $"'ciphertext' length must be at least messageLength + {nameof(HeaderBytes)}"));
         }
