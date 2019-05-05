@@ -23,13 +23,37 @@
 
         private static RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
 
+        /// <summary>
+        /// Generates an encryption key.
+        /// </summary>
+        /// <param name="key">A buffer in which to place the generated key.</param>
+        public static void GenerateKey(byte[] key)
+        {
+            rngCsp.GetBytes(key, 0, KeyBytes);
+        }
+
+        /// <summary>
+        /// Encrypt a message with optional message Id and context, using the
+        /// given key.
+        /// </summary>
+        /// <param name="ciphertext">A buffer in which to place the generated ciphertext.</param>
+        /// <param name="message">The message to encrypt.</param>
+        /// <param name="messageLength">The length of the message to encrypt.</param>
+        /// <param name="messageId">The message id.</param>
+        /// <param name="context">A string of maximum 8 characters describing the context.</param>
+        /// <param name="key">The encryption key.</param>
         public static void Encrypt(
-            byte[] c, byte[] msg, int mlen, long msgId, string ctx, byte[] key)
+            byte[] ciphertext,
+            byte[] message, 
+            int messageLength, 
+            long messageId, 
+            string context, 
+            byte[] key)
         {
             var iv = new byte[IVBytes];
             rngCsp.GetBytes(iv);
 
-            EncryptWithIv(c, msg, mlen, msgId, ctx, key, iv);
+            EncryptWithIv(ciphertext, message, messageLength, messageId, context, key, iv);
         }
 
         private static void EncryptWithIv(
@@ -117,7 +141,8 @@
             Gimli(buf, TagHeader);
         }
 
-        private static void XorEnc(byte[] buf, ArraySegment<byte> output, ArraySegment<byte> input, int inputLength)
+        private static void XorEnc(
+            byte[] buf, ArraySegment<byte> output, ArraySegment<byte> input, int inputLength)
         {
             int i;
             for (i = 0; i < inputLength / GimliRate; i++)
@@ -147,9 +172,9 @@
             Gimli(buf, tag);
         }
 
-        private static void Pad(byte[] buf, int pos, byte domain)
+        private static void Pad(byte[] buf, int position, byte domain)
         {
-            buf[pos] ^= (byte)((domain << 1) | 1);
+            buf[position] ^= (byte)((domain << 1) | 1);
             buf[GimliRate - 1] ^= 0x80;
         }
     }
