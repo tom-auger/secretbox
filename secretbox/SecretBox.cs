@@ -7,7 +7,7 @@
     using static Internal.Primitive;
     using static Utilities;
 
-    public static class SecretBox
+    public class SecretBox : ISecretBox
     {
         public const int KeyBytes = 32;
         public const int ContextBytes = 8;
@@ -27,7 +27,7 @@
         /// Generates an encryption key.
         /// </summary>
         /// <param name="key">A buffer in which to place the generated key.</param>
-        public static void GenerateKey(byte[] key)
+        public void GenerateKey(byte[] key)
         {
             rngCsp.GetBytes(key, 0, KeyBytes);
         }
@@ -42,34 +42,35 @@
         /// <param name="messageId">The message id.</param>
         /// <param name="context">A string of maximum 8 characters describing the context.</param>
         /// <param name="key">The encryption key.</param>
-        public static void Encrypt(
+        public void Encrypt(
             byte[] ciphertext,
-            byte[] message, 
-            int messageLength, 
-            long messageId, 
-            string context, 
+            byte[] message,
+            int messageLength,
+            long messageId,
+            string context,
             byte[] key)
         {
-            var iv = new byte[IVBytes];
-            rngCsp.GetBytes(iv);
+            ValidateParameters(ciphertext, message, messageLength, context, key);
 
-            EncryptWithIv(ciphertext, message, messageLength, messageId, context, key, iv);
+            var iv = GenerateIV();
+            var ctx = ConvertContextToBytes(context);
+            EncryptWithIv(ciphertext, message, messageLength, messageId, ctx, key, iv);
         }
 
         private static void EncryptWithIv(
-            byte[] c, byte[] msg, int mlen, long msgId, string ctx, byte[] key, byte[] iv)
+            byte[] c, byte[] m, int mlen, long msgId, byte[] ctx, byte[] key, byte[] iv)
         {
             var buf = new byte[GimliBlockBytes];
-            var m = new ArraySegment<byte>(msg, 0, mlen);
+            var msg = new ArraySegment<byte>(m, 0, mlen);
             var mac = new ArraySegment<byte>(c, SIVBytes, MACBytes);
             var ct = new ArraySegment<byte>(c, SIVBytes + MACBytes, c.Length - (SIVBytes + MACBytes));
 
             // If encrypting the message in place then move the message further
             // down the array to make room for the header
-            if (c == msg)
+            if (c == m)
             {
-                Array.Copy(msg, 0, c, HeaderBytes, mlen);
-                m = new ArraySegment<byte>(msg, HeaderBytes, mlen);
+                Array.Copy(m, 0, c, HeaderBytes, mlen);
+                msg = new ArraySegment<byte>(m, HeaderBytes, mlen);
             }
 
             // First pass: compute the SIV
@@ -77,14 +78,14 @@
             int i;
             for (i = 0; i < mlen / GimliRate; i++)
             {
-                ArrayXor(m, i * GimliRate, buf, 0, GimliRate);
+                ArrayXor(msg, i * GimliRate, buf, 0, GimliRate);
                 Gimli(buf, TagPayload);
             }
 
             var leftOver = mlen % GimliRate;
             if (leftOver != 0)
             {
-                ArrayXor(m, i * GimliRate, buf, 0, leftOver);
+                ArrayXor(msg, i * GimliRate, buf, 0, leftOver);
             }
 
             Pad(buf, leftOver, GimliDomainXOF);
@@ -96,13 +97,14 @@
             // Second pass: encrypt the message, mix the key, and squeeze an 
             // extra block for the MAC
             Setup(buf, msgId, ctx, key, c, GimliTagKey);
-            XorEnc(buf, ct, m, mlen);
+            XorEnc(buf, ct, msg, mlen);
 
             Finalize(buf, key, GimliTagFinal);
             ArrayCopy(buf, GimliRate, mac, 0, MACBytes);
         }
 
-        private static void Setup(byte[] buf, long msgId, string ctx, byte[] key, byte[] iv, byte keyTag)
+        private static void Setup(
+            byte[] buf, long msgId, byte[] ctx, byte[] key, byte[] iv, byte keyTag)
         {
             Contract.Assert(buf.Length == GimliBlockBytes);
             Contract.Assert(ctx.Length == ContextBytes);
@@ -112,10 +114,7 @@
 
             // Add the prefix and context and apply the Gimli permutation
             Array.Copy(Prefix, buf, Prefix.Length);
-            // TODO: Change the interface of this method to have ctx a byte array and 
-            // do the conversion in the calling function
-            var ctxBytes = Encoding.UTF8.GetBytes(ctx);
-            Array.Copy(ctxBytes, 0, buf, Prefix.Length, ContextBytes);
+            Array.Copy(ctx, 0, buf, Prefix.Length, ContextBytes);
             Contract.Assert(Prefix.Length + ContextBytes == GimliRate);
             Gimli(buf, TagHeader);
 
@@ -176,6 +175,48 @@
         {
             buf[position] ^= (byte)((domain << 1) | 1);
             buf[GimliRate - 1] ^= 0x80;
+        }
+
+        private static byte[] GenerateIV()
+        {
+            var iv = new byte[IVBytes];
+            rngCsp.GetBytes(iv);
+            return iv;
+        }
+
+        private static byte[] ConvertContextToBytes(string context)
+        {
+            var ctx = new byte[ContextBytes];
+            Encoding.UTF8.GetBytes(context, 0, context.Length, ctx, 0);
+            return ctx;
+        }
+
+        private static void ValidateParameters(
+            byte[] ciphertext,
+            byte[] message,
+            int messageLength,
+            string context,
+            byte[] key)
+        {
+            if (key.Length != KeyBytes)
+            {
+                throw new ArgumentException($"'{nameof(key)}' length must be {KeyBytes} bytes");
+            }
+
+            if (message.Length < messageLength)
+            {
+                throw new ArgumentException($"'{nameof(messageLength)}' must be at least than the length of '{nameof(message)}'");
+            }
+
+            if (context.Length > ContextBytes)
+            {
+                throw new ArgumentException($"'{nameof(context)}' must be at most {ContextBytes} characters");
+            }
+
+            if (ciphertext.Length < messageLength + HeaderBytes)
+            {
+                throw new ArgumentException($"'{nameof(ciphertext)}' length must be at least {nameof(messageLength)} + {nameof(HeaderBytes)}");
+            }
         }
     }
 }
