@@ -1,20 +1,24 @@
 namespace Tests
 {
     using NUnit.Framework;
+    using SecretBox.Internal;
     using System.Linq;
 
     public class PrimitiveTests
     {
         [Test]
-        public void Test_TestVector()
+        public void VerifyTestVector()
         {
+            // This test vector is taken from the c-ref implementation of the
+            // Gimli permutation obtained from https://gimli.cr.yp.to/impl.html.
+
             // Generate the test vector
             var tv = Enumerable.Range(0, 12)
                 .Select(i => (uint)(i * i * i + i * 0x9e3779b9))
                 .ToArray();
 
             // Perform the Gimli permutation
-            SecretBox.Internal.Primitive.Gimli(tv);
+            Primitive.Gimli(tv);
 
             // Verify it equals the expected output
             var tvExp = new uint[] 

@@ -8,7 +8,7 @@
     {
         [TestCase(12, Description = "Key too short")]
         [TestCase(44, Description = "Key too long")]
-        public void Test_ValidateKeyLength(int keyLength)
+        public void ValidateKeyLength(int keyLength)
         {
             var key = new byte[keyLength];
             const int mlen = 12;
@@ -24,7 +24,7 @@
         }
 
         [Test]
-        public void Test_ValidateMessageLength_TooLong()
+        public void ValidateMessageLength_TooLong()
         {
             var key = new byte[KeyBytes];
             const int mlen = 44;
@@ -41,7 +41,7 @@
         }
 
         [Test]
-        public void Test_ValidateContextLength_TooLong()
+        public void ValidateContextLength_TooLong()
         {
             var key = new byte[KeyBytes];
             const int mlen = 12;
@@ -57,7 +57,7 @@
         }
 
         [Test]
-        public void Test_ValidateCiphertextLength_TooShort()
+        public void ValidateCiphertextLength_TooShort()
         {
             var key = new byte[KeyBytes];
             const int mlen = 12;
