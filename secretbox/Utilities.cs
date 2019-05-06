@@ -1,9 +1,25 @@
 ﻿namespace SecretBox
 {
     using System.Collections.Generic;
+    using System.Runtime.InteropServices;
 
     internal static class Utilities
     {
+        /// <summary>
+        /// This is a hack to convert byte[] to uint[] without requiring unsafe
+        /// code, or copying memory. The struct has two fields of the required
+        /// types that start at the same memory location.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct ByteUintConverter
+        {
+            [FieldOffset(0)]
+            public byte[] Bytes;
+
+            [FieldOffset(0)]
+            public uint[] Uints;
+        }
+
         internal static void ArrayXor(
             IReadOnlyList<byte> src, int srcIdx, 
             IList<byte> dst, int dstIdx, 

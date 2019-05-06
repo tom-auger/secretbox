@@ -1,7 +1,7 @@
-﻿using System.Runtime.InteropServices;
-
-namespace SecretBox.Internal
+﻿namespace SecretBox.Internal
 {
+    using static Utilities;
+
     public static class Primitive
     {
         internal const int GimliBlockBytes = 48;
@@ -15,21 +15,6 @@ namespace SecretBox.Internal
         internal const byte GimliTagKey0 = 0xfe;
         internal const byte GimliTagFinal0 = 0xf8;
         internal const byte GimliTagFinal = 0x08;
-
-        /// <summary>
-        /// This is a hack to convert byte[] to uint[] without requiring unsafe
-        /// code, or copying memory. The struct has two fields of the required
-        /// types that start at the same memory location.
-        /// </summary>
-        [StructLayout(LayoutKind.Explicit)]
-        private struct ByteUintConverter
-        {
-            [FieldOffset(0)]
-            public byte[] Bytes;
-
-            [FieldOffset(0)]
-            public uint[] Uints;
-        }
 
         /// <summary>
         /// This is a C# translation of the c-ref implementation of 
