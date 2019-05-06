@@ -20,4 +20,8 @@
     <ProjectReference Include="..\..\secretbox\SecretBox.csproj" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="xcopy /y /d &quot;..\libhydrogen\bin\Libhydrogen.dll&quot; &quot;$(OutDir)&quot;" />
+  </Target>
+
 </Project>
