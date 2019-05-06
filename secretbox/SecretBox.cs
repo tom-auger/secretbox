@@ -49,7 +49,7 @@
             string context,
             long messageId = 1)
         {
-            ValidateParameters(ciphertext, message, messageLength, key, context);
+            ValidateEncryptionParameters(ciphertext, message, messageLength, key, context);
 
             var iv = GenerateIV();
             var ctx = ConvertContextToBytes(context);
@@ -73,7 +73,8 @@
             string context,
             long messageId = 1)
         {
-            // TODO validate parameters
+            ValidateDecryptionParameters(message, ciphertext, ciphertextLength, key, context);
+
             var buf = new byte[GimliBlockBytes];
             var ctx = ConvertContextToBytes(context);
             var ct = new ArraySegment<byte>(
@@ -276,31 +277,60 @@
             return ctx;
         }
 
-        private static void ValidateParameters(
+        private static void ValidateDecryptionParameters(
+            byte[] message,
+            byte[] ciphertext,
+            int ciphertextLength,
+            byte[] key,
+            string context)
+        {
+            ValidateKeyAndContext(key, context);
+
+            if (ciphertext.Length < ciphertextLength)
+            {
+                throw new ArgumentException(
+                    $"'{nameof(ciphertextLength)}' must be at most the length of '{nameof(ciphertext)}'");
+            }
+
+            if (message.Length < ciphertextLength - HeaderBytes)
+            {
+                throw new ArgumentException(
+                    $"'{nameof(message)}' length must be at least {nameof(ciphertextLength)} - {nameof(HeaderBytes)}");
+            }
+        }
+
+        private static void ValidateEncryptionParameters(
             byte[] ciphertext,
             byte[] message,
             int messageLength,
             byte[] key,
             string context)
         {
+            ValidateKeyAndContext(key, context);
+
+            if (message.Length < messageLength)
+            {
+                throw new ArgumentException(
+                    $"'{nameof(messageLength)}' must be at most the length of '{nameof(message)}'");
+            }
+
+            if (ciphertext.Length < messageLength + HeaderBytes)
+            {
+                throw new ArgumentException(
+                    $"'{nameof(ciphertext)}' length must be at least {nameof(messageLength)} + {nameof(HeaderBytes)}");
+            }
+        }
+
+        private static void ValidateKeyAndContext(byte[] key, string context)
+        {
             if (key.Length != KeyBytes)
             {
                 throw new ArgumentException($"'{nameof(key)}' length must be {KeyBytes} bytes");
             }
 
-            if (message.Length < messageLength)
-            {
-                throw new ArgumentException($"'{nameof(messageLength)}' must be at least than the length of '{nameof(message)}'");
-            }
-
             if (context.Length > ContextBytes)
             {
                 throw new ArgumentException($"'{nameof(context)}' must be at most {ContextBytes} characters");
-            }
-
-            if (ciphertext.Length < messageLength + HeaderBytes)
-            {
-                throw new ArgumentException($"'{nameof(ciphertext)}' length must be at least {nameof(messageLength)} + {nameof(HeaderBytes)}");
             }
         }
     }
