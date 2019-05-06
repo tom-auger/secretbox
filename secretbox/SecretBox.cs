@@ -161,6 +161,28 @@
             Gimli(buf, TagPayload);
         }
 
+        private static void XorDec(
+            byte[] buf, ArraySegment<byte> input, int inputLength, ArraySegment<byte> output)
+        {
+            int i;
+            for (i = 0; i < inputLength / GimliRate; i++)
+            {
+                ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, GimliRate);
+                ArrayCopy(input, i * GimliRate, buf, 0, GimliRate);
+                Gimli(buf, TagPayload);
+            }
+
+            var leftOver = inputLength % GimliRate;
+            if (leftOver != 0)
+            {
+                ArrayXor2(input, i * GimliRate, buf, 0, output, i * GimliRate, leftOver);
+                ArrayCopy(input, i * GimliRate, buf, 0, leftOver);
+            }
+
+            Pad(buf, leftOver, GimliDomainAEAD);
+            Gimli(buf, TagPayload);
+        }
+
         private static void Finalize(byte[] buf, byte[] key, byte tag)
         {
             Contract.Assert(KeyBytes == GimliCapacity);
