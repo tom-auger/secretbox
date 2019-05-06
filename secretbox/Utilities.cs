@@ -53,5 +53,23 @@
                 dst[dstIdx + i] = src[srcIdx + i];
             }
         }
+
+        internal static uint ArrayCompare(byte[] arr1, byte[] arr2, int length)
+        {
+            var arr1Converter = new ByteUintConverter { Bytes = arr1 };
+            var arr1U = arr1Converter.Uints;
+
+            var arr2Converter = new ByteUintConverter { Bytes = arr2 };
+            var arr2U = arr2Converter.Uints;
+
+            var lengthU = length / 4;
+            uint cv = 0;
+            for (var i = 0; i < lengthU; i++)
+            {
+                cv |= arr1U[i] ^ arr2U[i];
+            }
+
+            return cv;
+        }
     }
 }
