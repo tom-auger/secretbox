@@ -56,13 +56,63 @@
             EncryptWithIv(ciphertext, message, messageLength, key, iv, ctx, messageId);
         }
 
+        /// <summary>
+        /// Decrypt a ciphertext using the given key, with context and optional message ID.
+        /// </summary>
+        /// <param name="message">A buffer in which to place the decrypted message.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext to decrypt.</param>
+        /// <param name="key">The encryption key.</param>
+        /// <param name="context">A string of maximum 8 characters describing the context.</param>
+        /// <param name="messageId">Optional message ID. Defaults to 1.</param>
+        public void Decrypt(
+            byte[] message,
+            byte[] ciphertext, 
+            int ciphertextLength,
+            byte[] key,
+            string context,
+            long messageId = 1)
+        {
+            // TODO validate parameters
+            var buf = new byte[GimliBlockBytes];
+            var ctx = ConvertContextToBytes(context);
+            var ct = new ArraySegment<byte>(
+                ciphertext,
+                SIVBytes + MACBytes, 
+                ciphertext.Length - (SIVBytes + MACBytes));
+
+            var mlen = ciphertextLength - HeaderBytes;
+            // Store the MAC to compare against the value computed from the decryption later
+            var pubMac = new byte[MACBytes];
+            Array.Copy(ciphertext, SIVBytes, pubMac, 0, MACBytes);
+
+            // Decrypt the message
+            Setup(buf, messageId, ctx, key, ciphertext, GimliTagKey);
+            XorDec(buf, ct, mlen, message);
+            Finalize(buf, key, GimliTagFinal);
+
+            // Compare the MAC from the decrypted message with the MAC included in 
+            // the ciphertext header
+            var cv = ComputeChecksum(buf, pubMac);
+            Array.Clear(buf, 0, GimliBlockBytes);
+            if (cv != 0)
+            {
+                // If the MAC is invalid then throw away any decryption result and error out
+                Array.Clear(message, 0, mlen);
+                throw new CryptographicException("MAC check failed.");
+            }
+        }
+
         private static void EncryptWithIv(
             byte[] c, byte[] m, int mlen, byte[] key, byte[] iv, byte[] ctx, long msgId)
         {
             var buf = new byte[GimliBlockBytes];
             var msg = new ArraySegment<byte>(m, 0, mlen);
             var mac = new ArraySegment<byte>(c, SIVBytes, MACBytes);
-            var ct = new ArraySegment<byte>(c, SIVBytes + MACBytes, c.Length - (SIVBytes + MACBytes));
+            var ct = new ArraySegment<byte>(
+                c,
+                SIVBytes + MACBytes, 
+                c.Length - (SIVBytes + MACBytes));
 
             // If encrypting the message in place then move the message further
             // down the array to make room for the header
@@ -162,7 +212,7 @@
         }
 
         private static void XorDec(
-            byte[] buf, ArraySegment<byte> input, int inputLength, ArraySegment<byte> output)
+            byte[] buf, ArraySegment<byte> input, int inputLength, byte[] output)
         {
             int i;
             for (i = 0; i < inputLength / GimliRate; i++)
@@ -196,6 +246,20 @@
         {
             buf[position] ^= (byte)((domain << 1) | 1);
             buf[GimliRate - 1] ^= 0x80;
+        }
+
+        private static uint ComputeChecksum(byte[] buf, byte[] pubMac)
+        {
+            // Convert the byte arrays to uint arrays
+            var bufConverter = new ByteUintConverter { Bytes = buf };
+            var bufU = bufConverter.Uints;
+
+            var pubMacConverter = new ByteUintConverter { Bytes = pubMac };
+            var pubMacU = pubMacConverter.Uints;
+
+            // Compare the MAC calculated from the decrypted ciphertext with the public MAC,
+            // which was included in the ciphertext header.
+            return ArrayCompare(bufU, GimliRate / 4, pubMacU, 0, MACBytes / 4);
         }
 
         private static byte[] GenerateIV()

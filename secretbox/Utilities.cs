@@ -54,19 +54,13 @@
             }
         }
 
-        internal static uint ArrayCompare(byte[] arr1, byte[] arr2, int length)
+        internal static uint ArrayCompare(
+            uint[] arr1, int arr1Idx, uint[] arr2, int arr2Idx, int length)
         {
-            var arr1Converter = new ByteUintConverter { Bytes = arr1 };
-            var arr1U = arr1Converter.Uints;
-
-            var arr2Converter = new ByteUintConverter { Bytes = arr2 };
-            var arr2U = arr2Converter.Uints;
-
-            var lengthU = length / 4;
             uint cv = 0;
-            for (var i = 0; i < lengthU; i++)
+            for (var i = 0; i < length; i++)
             {
-                cv |= arr1U[i] ^ arr2U[i];
+                cv |= arr1[i + arr1Idx] ^ arr2[i + arr2Idx];
             }
 
             return cv;
