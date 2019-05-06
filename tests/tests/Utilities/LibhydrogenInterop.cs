@@ -1,9 +1,17 @@
 ﻿namespace Tests
 {
+    using System.Diagnostics.Contracts;
     using System.Runtime.InteropServices;
 
     internal static class LibhydrogenInterop
     {
+        static LibhydrogenInterop()
+        {
+            // hydro_init must be called before calling any other libhydrogen functions
+            var result = hydro_init();
+            Contract.Assert(result == 0);
+        }
+
         private const string LibhydrogenDll = "Libhydrogen.dll";
 
         [DllImport(LibhydrogenDll, CallingConvention = CallingConvention.Cdecl)]

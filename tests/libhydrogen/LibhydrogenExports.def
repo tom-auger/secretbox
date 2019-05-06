@@ -1,0 +1,5 @@
+LIBRARY LIBHYDROGEN
+EXPORTS
+	hydro_init
+	hydro_secretbox_encrypt
+	hydro_secretbox_decrypt
