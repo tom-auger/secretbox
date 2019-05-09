@@ -81,6 +81,7 @@
         /// <param name="key">The encryption key.</param>
         /// <param name="context">A string of maximum 8 characters describing the context.</param>
         /// <param name="messageId">Optional message ID. Defaults to 1.</param>
+        /// <returns>Whether the decryption succeeded or not.</returns>
         public bool TryDecrypt(
             byte[] message,
             byte[] ciphertext,
