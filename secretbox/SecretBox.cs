@@ -21,6 +21,13 @@
         private const byte TagHeader = 0x01;
         private const byte TagPayload = 0x02;
 
+        /// <summary>
+        /// The message id is an optional counter that can be used to send a sequence of 
+        /// messages encrypted with the same key. It is entirely optional and using a 
+        /// constant value for all messages does not impact security.
+        /// </summary>
+        private const long DefaultMessageId = 1;
+
         private static RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
 
         /// <summary>
@@ -47,7 +54,7 @@
             int messageLength,
             byte[] key,
             string context,
-            long messageId = 1)
+            long messageId = DefaultMessageId)
         {
             ValidateEncryptionParameters(ciphertext, message, messageLength, key, context);
 
@@ -71,7 +78,7 @@
             int ciphertextLength,
             byte[] key,
             string context,
-            long messageId = 1)
+            long messageId = DefaultMessageId)
         {
             ValidateDecryptionParameters(message, ciphertext, ciphertextLength, key, context);
 
