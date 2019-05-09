@@ -2,6 +2,7 @@
 {
     using NUnit.Framework;
     using SecretBox;
+    using System;
     using System.Security.Cryptography;
     using System.Text;
     using static SecretBox.SecretBox;
@@ -185,6 +186,14 @@
 
             // Verify the decrypted message
             Assert.That(decryptedMessage, Is.EqualTo(message));
+
+            // Decrypt using TryDecrypt
+            Array.Clear(decryptedMessage, 0, decryptedMessage.Length);
+            var result = sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId);
+
+            // Verify the decrypted message
+            Assert.That(decryptedMessage, Is.EqualTo(message));
+            Assert.That(result, Is.True);
         }
 
         [Test]
@@ -208,11 +217,17 @@
             Assert.That(
                 () => sb.Decrypt(decryptedMessage, ciphertext, HeaderBytes, key, context, messageId), 
                 Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+            Assert.That(
+                sb.TryDecrypt(decryptedMessage, ciphertext, HeaderBytes, key, context, messageId),
+                Is.False);
 
             // Verify error when the message id is incorrect
             Assert.That(
                 () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
                 Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+            Assert.That(
+                sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
+                Is.False);
 
             // Verify the decrypted message is not equal to the message, as a failed MAC check should not 
             // leak the plaintext
@@ -223,6 +238,9 @@
             Assert.That(
                () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
                Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+            Assert.That(
+               sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
+               Is.False);
 
             // Verify error when the ciphertext is invalid
             key[0]--;
@@ -230,6 +248,9 @@
             Assert.That(
                () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
                Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+            Assert.That(
+               sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
+               Is.False);
         }
     }
 }

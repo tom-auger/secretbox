@@ -2,7 +2,8 @@
 {
     public interface ISecretBox
     {
-        void Decrypt(byte[] message, byte[] ciphertext, int ciphertextLength, byte[] key, string context, long messageId = 1);
+        void GenerateKey(byte[] key);
+
         void Encrypt(
             byte[] ciphertext,
             byte[] message,
@@ -11,6 +12,20 @@
             string context, 
             long messageId);
 
-        void GenerateKey(byte[] key);
+        void Decrypt(
+            byte[] message,
+            byte[] ciphertext, 
+            int ciphertextLength,
+            byte[] key, 
+            string context, 
+            long messageId = 1);
+
+        bool TryDecrypt(
+            byte[] message,
+            byte[] ciphertext,
+            int ciphertextLength,
+            byte[] key, 
+            string context,
+            long messageId = 1);
     }
 }

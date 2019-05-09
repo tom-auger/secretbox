@@ -58,9 +58,46 @@
         {
             ValidateEncryptionParameters(ciphertext, message, messageLength, key, context);
 
-            var iv = GenerateIV();
-            var ctx = ConvertContextToBytes(context);
-            EncryptWithIv(ciphertext, message, messageLength, key, iv, ctx, messageId);
+            try
+            {
+                var iv = GenerateIV();
+                var ctx = ConvertContextToBytes(context);
+                EncryptWithIv(ciphertext, message, messageLength, key, iv, ctx, messageId);
+            }
+            catch
+            {
+                // Throw a generic exception rather than revealing the internals of the actual error.
+                // This makes it harder for a malicous user to break a ciphertext.
+                throw new CryptographicException("Encryption failed");
+            }
+        }
+
+        /// <summary>
+        /// Decrypt a ciphertext using the given key, with context and optional message ID.
+        /// </summary>
+        /// <param name="message">A buffer in which to place the decrypted message.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext to decrypt.</param>
+        /// <param name="key">The encryption key.</param>
+        /// <param name="context">A string of maximum 8 characters describing the context.</param>
+        /// <param name="messageId">Optional message ID. Defaults to 1.</param>
+        public bool TryDecrypt(
+            byte[] message,
+            byte[] ciphertext,
+            int ciphertextLength,
+            byte[] key,
+            string context,
+            long messageId = DefaultMessageId)
+        {
+            try
+            {
+                Decrypt(message, ciphertext, ciphertextLength, key, context, messageId);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -74,7 +111,7 @@
         /// <param name="messageId">Optional message ID. Defaults to 1.</param>
         public void Decrypt(
             byte[] message,
-            byte[] ciphertext, 
+            byte[] ciphertext,
             int ciphertextLength,
             byte[] key,
             string context,
@@ -82,11 +119,38 @@
         {
             ValidateDecryptionParameters(message, ciphertext, ciphertextLength, key, context);
 
+            uint cv;
+            try
+            {
+                cv = DecryptAndVerifyMac(message, ciphertext, ciphertextLength, key, context, messageId);
+            }
+            catch
+            {
+                // Throw a generic exception rather than revealing the internals of the actual error.
+                // This makes it harder for a malicous user to break a ciphertext.
+                throw new CryptographicException("Decryption failed");
+            }
+
+            if (cv != 0)
+            {
+                // If the MAC is invalid then throw away any decryption result and error out
+                throw new CryptographicException("MAC check failed");
+            }
+        }
+
+        private static uint DecryptAndVerifyMac(
+            byte[] message,
+            byte[] ciphertext,
+            int ciphertextLength,
+            byte[] key,
+            string context,
+            long messageId)
+        {
             var buf = new byte[GimliBlockBytes];
             var ctx = ConvertContextToBytes(context);
             var ct = new ArraySegment<byte>(
                 ciphertext,
-                SIVBytes + MACBytes, 
+                SIVBytes + MACBytes,
                 ciphertext.Length - (SIVBytes + MACBytes));
 
             var mlen = ciphertextLength - HeaderBytes;
@@ -105,10 +169,10 @@
             Array.Clear(buf, 0, GimliBlockBytes);
             if (cv != 0)
             {
-                // If the MAC is invalid then throw away any decryption result and error out
+                // If the MAC is invalid then throw away any decryption result
                 Array.Clear(message, 0, mlen);
-                throw new CryptographicException("MAC check failed");
             }
+            return cv;
         }
 
         private static void EncryptWithIv(
@@ -119,7 +183,7 @@
             var mac = new ArraySegment<byte>(c, SIVBytes, MACBytes);
             var ct = new ArraySegment<byte>(
                 c,
-                SIVBytes + MACBytes, 
+                SIVBytes + MACBytes,
                 c.Length - (SIVBytes + MACBytes));
 
             // If encrypting the message in place then move the message further
