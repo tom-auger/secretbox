@@ -107,7 +107,7 @@
             {
                 // If the MAC is invalid then throw away any decryption result and error out
                 Array.Clear(message, 0, mlen);
-                throw new CryptographicException("MAC check failed.");
+                throw new CryptographicException("MAC check failed");
             }
         }
 
@@ -297,6 +297,12 @@
             {
                 throw new ArgumentException(
                     $"'{nameof(ciphertextLength)}' must be at most the length of '{nameof(ciphertext)}'");
+            }
+
+            if (ciphertextLength < HeaderBytes)
+            {
+                throw new ArgumentException(
+                    $"'{nameof(ciphertextLength)}' must be at least '{nameof(HeaderBytes)}'");
             }
 
             if (message.Length < ciphertextLength - HeaderBytes)

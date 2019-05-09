@@ -2,6 +2,8 @@
 {
     using NUnit.Framework;
     using SecretBox;
+    using System.Security.Cryptography;
+    using System.Text;
     using static SecretBox.SecretBox;
 
     public class SecretBoxTests
@@ -107,6 +109,23 @@
         }
 
         [Test]
+        public void Decrypt_ValidatesCiphertextLength_TooShort()
+        {
+            var key = new byte[KeyBytes];
+            const int clen = 1;
+            const int clenActual = 100;
+            var c = new byte[clenActual];
+            var m = new byte[clenActual - HeaderBytes];
+            var ctx = "test";
+
+            var sb = new SecretBox();
+            Assert.That(
+                () => sb.Decrypt(m, c, clen, key, ctx),
+                Throws.ArgumentException.With.Message.EqualTo(
+                    $"'ciphertextLength' must be at least 'HeaderBytes'"));
+        }
+
+        [Test]
         public void Decrypt_ValidateContextLength_TooLong()
         {
             var key = new byte[KeyBytes];
@@ -136,6 +155,81 @@
                 () => sb.Decrypt(m, c, clen, key, ctx),
                 Throws.ArgumentException.With.Message.EqualTo(
                     $"'message' length must be at least ciphertextLength - {nameof(HeaderBytes)}"));
+        }
+
+        [Test]
+        public void VerifyMessageCanBeEncryptedAndDecrypted()
+        {
+            var sb = new SecretBox();
+
+            // Generate a key
+            var key = new byte[KeyBytes];
+            sb.GenerateKey(key);
+
+            // Generate a message to encrypt
+            var message = Encoding.UTF8.GetBytes("You are old Father William, the young man said");
+            const int messageId = 1;
+            const string context = "test";
+
+            // Buffer to hold the ciphertext
+            var ciphertext = new byte[message.Length + HeaderBytes];
+
+            // Encrypt
+            sb.Encrypt(ciphertext, message, message.Length, key, context, messageId);
+
+            // Buffer to hold decrypted message
+            var decryptedMessage = new byte[message.Length];
+
+            // Decrypt
+            sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId);
+
+            // Verify the decrypted message
+            Assert.That(decryptedMessage, Is.EqualTo(message));
+        }
+
+        [Test]
+        public void VerifyDecryptFailsWithInvalidParameters()
+        {
+            var sb = new SecretBox();
+
+            // Generate an encrypted message
+            var key = new byte[KeyBytes];
+            sb.GenerateKey(key);
+            var message = Encoding.UTF8.GetBytes("You are old Father William, the young man said");
+            const int messageId = 1;
+            const string context = "test";
+            var ciphertext = new byte[message.Length + HeaderBytes];
+            sb.Encrypt(ciphertext, message, message.Length, key, context, messageId);
+
+            // Buffer to hold decrypted message
+            var decryptedMessage = new byte[message.Length];
+
+            // Verify error when ciphertextLength is incorrect
+            Assert.That(
+                () => sb.Decrypt(decryptedMessage, ciphertext, HeaderBytes, key, context, messageId), 
+                Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+
+            // Verify error when the message id is incorrect
+            Assert.That(
+                () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
+                Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+
+            // Verify the decrypted message is not equal to the message, as a failed MAC check should not 
+            // leak the plaintext
+            Assert.That(decryptedMessage, Is.Not.EqualTo(message));
+
+            // Verify error when the key is invalid
+            key[0]++;
+            Assert.That(
+               () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
+               Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
+
+            // Verify error when the ciphertext is invalid
+            key[0]--;
+            ciphertext[12]++;
+            Assert.That(
+               () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
+               Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
         }
     }
 }
