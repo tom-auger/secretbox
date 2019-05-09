@@ -120,10 +120,13 @@
         {
             ValidateDecryptionParameters(message, ciphertext, ciphertextLength, key, context);
 
-            uint cv;
             try
             {
-                cv = DecryptAndVerifyMac(message, ciphertext, ciphertextLength, key, context, messageId);
+               DecryptAndVerifyMac(message, ciphertext, ciphertextLength, key, context, messageId);
+            }
+            catch (CryptographicException)
+            {
+                throw;
             }
             catch
             {
@@ -132,14 +135,9 @@
                 throw new CryptographicException("Decryption failed");
             }
 
-            if (cv != 0)
-            {
-                // If the MAC is invalid then throw away any decryption result and error out
-                throw new CryptographicException("MAC check failed");
-            }
         }
 
-        private static uint DecryptAndVerifyMac(
+        private static void DecryptAndVerifyMac(
             byte[] message,
             byte[] ciphertext,
             int ciphertextLength,
@@ -172,8 +170,8 @@
             {
                 // If the MAC is invalid then throw away any decryption result
                 Array.Clear(message, 0, mlen);
+                throw new CryptographicException("MAC check failed");
             }
-            return cv;
         }
 
         private static void EncryptWithIv(
