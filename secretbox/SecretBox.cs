@@ -16,13 +16,16 @@
         private const int IVBytes = 20;
         private const int SIVBytes = 20;
         private const int MACBytes = 16;
+
+        // This must be the same prefix used in libhydrogen to make this construction
+        // compatible with it.
         private static readonly byte[] Prefix = { 6, 115, 98, 120, 50, 53, 54, 8 };
 
         private const byte TagHeader = 0x01;
         private const byte TagPayload = 0x02;
 
         /// <summary>
-        /// The message id is an optional counter that can be used to send a sequence of 
+        /// The message ID is an optional counter that can be used to send a sequence of 
         /// messages encrypted with the same key. It is entirely optional and using a 
         /// constant value for all messages does not impact security.
         /// </summary>
