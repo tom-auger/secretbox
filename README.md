@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/pra8fsvbarld7a2w?svg=true)](https://ci.appveyor.com/project/tom-auger/secretbox)
+
 # SecretBox
 
 <img align="right" src="logo.png">
