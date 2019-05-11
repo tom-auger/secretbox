@@ -1,5 +1,7 @@
 # SecretBox
 
+<img align="right" src="logo.png">
+
 SecretBox is a small .NET library for symmetric key encryption using the Gimli permutation. The SecretBox construction is a port of `hydro_secretbox` from [libhydrogen](https://github.com/jedisct1/libhydrogen). The Gimli primitive is a C# translation of the `c-ref` implementation of the Gimli permutation, for which the source code and specification can be obtained [here](https://gimli.cr.yp.to/).
 
 The SecretBox source code is pure C# targeting .NET Standard 2.0 and licensed under ISC.
