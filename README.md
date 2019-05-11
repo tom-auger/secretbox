@@ -19,7 +19,7 @@ The SecretBox source code is pure C# targeting .NET Standard 2.0 and licensed un
 
 ## Installation
 
-Add to your project via nuget:
+Add to your project via [nuget](https://www.nuget.org/packages/SecretBox/):
 
 ```
 dotnet add package SecretBox
