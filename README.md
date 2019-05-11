@@ -7,7 +7,7 @@ The SecretBox source code is pure C# targeting .NET Standard 2.0 and licensed un
 **Goals:**
 
 * A pure C# code base targeting .NET Standard.
-* Simple API that's easy to use and hard to mis-use.
+* Simple API that's easy to use and hard to misuse.
 * Interoperable with [libhydrogen](https://github.com/jedisct1/libhydrogen).
 
 **Non Goals:**
