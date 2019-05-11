@@ -238,9 +238,8 @@
         [Test]
         public void VerifyDecryptFailsWithInvalidParameters()
         {
+            // Encrypt a message
             var sb = new SecretBox();
-
-            // Generate an encrypted message
             var key = new byte[KeyBytes];
             sb.GenerateKey(key);
             var message = Encoding.UTF8.GetBytes("You are old Father William, the young man said");
@@ -252,7 +251,7 @@
             // Buffer to hold decrypted message
             var decryptedMessage = new byte[message.Length];
 
-            // Verify error when ciphertextLength is incorrect
+            // CiphertextLength is incorrect
             Assert.That(
                 () => sb.Decrypt(decryptedMessage, ciphertext, HeaderBytes, key, context, messageId), 
                 Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
@@ -260,19 +259,21 @@
                 sb.TryDecrypt(decryptedMessage, ciphertext, HeaderBytes, key, context, messageId),
                 Is.False);
 
-            // Verify error when the message id is incorrect
+            // MessageId is incorrect
             Assert.That(
                 () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
                 Throws.TypeOf<CryptographicException>().With.Message.EqualTo("MAC check failed"));
-            Assert.That(
-                sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
-                Is.False);
-
+            
             // Verify the decrypted message is not equal to the message, as a failed MAC check should not 
             // leak the plaintext
             Assert.That(decryptedMessage, Is.Not.EqualTo(message));
 
-            // Verify error when the key is invalid
+            Assert.That(
+                sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, 2),
+                Is.False);
+            Assert.That(decryptedMessage, Is.Not.EqualTo(message));
+
+            // Key is invalid
             key[0]++;
             Assert.That(
                () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
@@ -280,9 +281,9 @@
             Assert.That(
                sb.TryDecrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
                Is.False);
-
-            // Verify error when the ciphertext is invalid
             key[0]--;
+
+            // Ciphertext is invalid
             ciphertext[12]++;
             Assert.That(
                () => sb.Decrypt(decryptedMessage, ciphertext, ciphertext.Length, key, context, messageId),
