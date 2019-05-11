@@ -27,7 +27,7 @@ git submodule update --remote libhydrogen
 
 When adding a new function to `LibhydrogenInterop` also add the function to `LibhydrogenExports.def`.
 
-At the time of creating this project libhydrogen didn't (and may still not have) have any MSVC support, and none of the exports in hydrogen.h have `__declspec(dllexport)`.
+At the time of creating this project libhydrogen didn't (and may still not have) have any MSVC support, and none of the exports in `hydrogen.h` have `__declspec(dllexport)`.
 Rather than edit the source and having to merge each time new changes come in, the exported functions are defined in a def file: `tests\libhydrogen\LibhydrogenExports.def`.
 
 ## Libhydrogen project notes
@@ -37,4 +37,4 @@ Some project configuration settings had to be changed to get libhydrogen to buil
 1. SDL checks were set to 'No'.
 1. The warnings 4197;4146 were suppressed.
 
-The Output and Intermediate directories were also set to the custom values 'bin\' and '$(BaseIntermediateOutputPath)' respectively. This was to ensure that the dll gets output to a consistent location so that the PreBuild task in the Tests project can copy over the dll to its output folder.
+The Output and Intermediate directories were also set to the custom values 'bin\' and '$(BaseIntermediateOutputPath)' respectively. This ensures the dll is output to a consistent location so that the PreBuild task in the Tests project can copy it over to the Tests project build folder.

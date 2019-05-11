@@ -1,16 +1,16 @@
 # SecretBox
 
-SecretBox is a small .net library for symmetric key encryption using the Gimli permutation. The SecretBox construction is a port of `hydro_secretbox` from [libhydrogen](https://github.com/jedisct1/libhydrogen). The Gimli primitive is a C# translation of the `c-ref` implementation of the Gimli permutation, for which the source code and specification can be obtained [here](https://gimli.cr.yp.to/).
+SecretBox is a small .NET library for symmetric key encryption using the Gimli permutation. The SecretBox construction is a port of `hydro_secretbox` from [libhydrogen](https://github.com/jedisct1/libhydrogen). The Gimli primitive is a C# translation of the `c-ref` implementation of the Gimli permutation, for which the source code and specification can be obtained [here](https://gimli.cr.yp.to/).
 
-The `SecretBox` source code is pure C# targeting .NET Standard 2.0 and licensed under ISC.
+The SecretBox source code is pure C# targeting .NET Standard 2.0 and licensed under ISC.
 
-*Goals:*
+**Goals:**
 
 * A pure C# code base targeting .NET Standard.
 * Simple API that's easy to use and hard to mis-use.
 * Interoperable with [libhydrogen](https://github.com/jedisct1/libhydrogen).
 
-*Non Goals:*
+**Non Goals:**
 
 * NSA proof security.
 * Optimized for high performance.
@@ -68,7 +68,7 @@ The message Id can be any int64 value, so a timestamp or unique Id could also be
 ```
 git clone --recurse-submodules https://github.com/tom-auger/secretbox.git
 ```
-2. Open `SecretBox.sln` do a build and verify all the tests pass.
+2. Open `SecretBox.sln`, do a build and verify all the tests pass.
 
 Some of the unit tests verify integration with [libhydrogen](https://github.com/jedisct1/libhydrogen). To make it easy to test against the latest source there is an MSVC project to compile the libhydrogen source code. See the [README](tests/README.md) for details.
 
