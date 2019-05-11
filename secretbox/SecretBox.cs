@@ -70,7 +70,7 @@
             catch
             {
                 // Throw a generic exception rather than revealing the internals of the actual error.
-                // This makes it harder for a malicous user to break a ciphertext.
+                // This makes it harder for a malicious user to break a ciphertext.
                 throw new CryptographicException("Encryption failed");
             }
         }
@@ -134,10 +134,9 @@
             catch
             {
                 // Throw a generic exception rather than revealing the internals of the actual error.
-                // This makes it harder for a malicous user to break a ciphertext.
+                // This makes it harder for a malicious user to break a ciphertext.
                 throw new CryptographicException("Decryption failed");
             }
-
         }
 
         private static void DecryptAndVerifyMac(

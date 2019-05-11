@@ -5,7 +5,7 @@
     using System.Text;
     using static LibhydrogenInterop;
 
-    public class LibhydogenIntegrationTests
+    public class LibhydrogenIntegrationTests
     {
         [Test]
         public void VerifySecretBoxEncryptedMessageCanBeDecrypted()
