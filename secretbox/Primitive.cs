@@ -2,6 +2,9 @@
 {
     using static Utilities;
 
+    /// <summary>
+    /// A C# translation of the c-ref implementation of the Gimli permutation.
+    /// </summary>
     public static class Primitive
     {
         internal const int GimliBlockBytes = 48;
@@ -17,8 +20,10 @@
         internal const byte GimliTagFinal = 0x08;
 
         /// <summary>
+        /// <para>
         /// This is a C# translation of the c-ref implementation of 
-        /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html.
+        /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html. 
+        /// </para>
         /// This is not intended for general usage! Only use for building your 
         /// own constructions.
         /// </summary>
@@ -38,8 +43,10 @@
         }
 
         /// <summary>
+        /// <para>
         /// This is a C# translation of the c-ref implementation of 
-        /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html.
+        /// the Gimli permutation taken from https://gimli.cr.yp.to/impl.html. 
+        /// </para>
         /// This is not intended for general usage! Only use for building your 
         /// own constructions.
         /// </summary>
