@@ -14,7 +14,7 @@ The SecretBox source code is pure C# targeting .NET Standard 2.0 and licensed un
 
 **Non Goals:**
 
-* NSA proof security.
+* NSA-proof security.
 * Optimized for high performance.
 
 ## Installation
