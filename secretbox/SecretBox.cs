@@ -139,6 +139,37 @@
             }
         }
 
+        /// <summary>
+        /// Calculates the length of the ciphertext when encrypting a message of the given length.
+        /// </summary>
+        /// <param name="messageLength">The length of the message to encrypt.</param>
+        /// <returns>The length of the ciphertext.</returns>
+        public int CalculateCiphertextLength(int messageLength)
+        {
+            if (messageLength < 0)
+            {
+                throw new ArgumentException($"{nameof(messageLength)} must be greater than 0");
+            }
+
+            return messageLength + HeaderBytes;
+        }
+
+        /// <summary>
+        /// Calculates the length of the message when decrypting a ciphertext of the given length.
+        /// </summary>
+        /// <param name="ciphertextLength">The length of the ciphertext to decrypt.</param>
+        /// <returns>The length of the decrypted message.</returns>
+        public int CalculateMessageLength(int ciphertextLength)
+        {
+            if (ciphertextLength < HeaderBytes)
+            {
+                throw new ArgumentException(
+                    $"{nameof(ciphertextLength)} must be greater than {nameof(HeaderBytes)}");
+            }
+
+            return ciphertextLength - HeaderBytes;
+        }
+
         private static void DecryptAndVerifyMac(
             byte[] message,
             byte[] ciphertext,

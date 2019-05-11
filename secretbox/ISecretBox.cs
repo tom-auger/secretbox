@@ -59,5 +59,19 @@
             byte[] key, 
             string context,
             long messageId = 1);
+        
+        /// <summary>
+        /// Calculates the length of the ciphertext when encrypting a message of the given length.
+        /// </summary>
+        /// <param name="messageLength">The length of the message to encrypt.</param>
+        /// <returns>The length of the ciphertext.</returns>
+        int CalculateCiphertextLength(int messageLength);
+
+        /// <summary>
+        /// Calculates the length of the message when decrypting a ciphertext of the given length.
+        /// </summary>
+        /// <param name="ciphertextLength">The length of the ciphertext to decrypt.</param>
+        /// <returns>The length of the decrypted message.</returns>
+        int CalculateMessageLength(int ciphertextLength);
     }
 }

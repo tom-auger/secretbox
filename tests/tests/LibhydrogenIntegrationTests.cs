@@ -22,7 +22,7 @@
             const string context = "test";
 
             // Buffer to hold the ciphertext
-            var ciphertext = new byte[message.Length + SecretBox.HeaderBytes];
+            var ciphertext = new byte[sb.CalculateCiphertextLength(message.Length)];
 
             // Encrypt using SecretBox
             sb.Encrypt(ciphertext, message, message.Length, key, context, messageId);
@@ -55,7 +55,7 @@
             const string context = "test";
 
             // Buffer to hold the ciphertext
-            var ciphertext = new byte[message.Length + SecretBox.HeaderBytes];
+            var ciphertext = new byte[sb.CalculateCiphertextLength(message.Length)];
 
             // Encrypt using libhydrogen
             var result = hydro_secretbox_encrypt(
