@@ -1,6 +1,7 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/pra8fsvbarld7a2w?svg=true)](https://ci.appveyor.com/project/tom-auger/secretbox)
-
 # SecretBox
+
+[![Build status](https://ci.appveyor.com/api/projects/status/pra8fsvbarld7a2w?svg=true)](https://ci.appveyor.com/project/tom-auger/secretbox)
+![Nuget](https://img.shields.io/nuget/v/SecretBox.svg)
 
 <img align="right" src="logo.png">
 
